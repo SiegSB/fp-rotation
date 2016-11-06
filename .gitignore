@@ -1,0 +1,5 @@
+# Excluding log and binary files
+*.exe
+*.dll
+*.log
+*_log

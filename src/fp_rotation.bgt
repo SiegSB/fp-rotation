@@ -1,0 +1,230 @@
+/* 
+	Library name: FP Rotation Package
+	Authors: Samtupy and SiegSBDeveloper
+	Version: 1.0.1
+	Released on: 22:19 05/11/2016
+	Samtupy website: http://www.samtupy.com
+	Samtupy Twitter account: @samtupy1
+	SiegSBDeveloper website: http://www.pbaltazar.com
+	SiegSBDeveloper Twitter account: @SiegSBDeveloper
+*/
+
+// Constants declarations.
+const double PI = 3.1415926535897932384626433832795;
+const int NORTH = 0;
+const int NORTHEAST  = 45;
+const int EAST = 90;
+const int SOUTHEAST = 135;
+const int SOUTH = 180;
+const int SOUTHWEST = 225;
+const int WEST = 270;
+const int NORTHWEST = 315;
+const int HALF_UP = 45;
+const int STREIGHT_UP = 90;
+const int HALF_DOWN = 135;
+const int STREIGHT_DOWN = 180;
+double theta;
+
+// Secondary function for 2D movement with horizontal rotation.
+vector move(double x, double y, double deg, double dir=0.0) {
+	return move(x, y, 0, deg, 0, dir, 0);
+}
+
+// Secondary Function for 3D movement with horizontal rotation.
+vector move(double x, double y, double z, double deg, double dir) {
+	return move(x, y, z, deg, 0, dir, 0);
+}
+
+// Primary function for 3 D movement with horizontal and vertical rotation.
+vector move(double x, double y, double z, double deg, double zdeg, double dir, double zdir) {
+	if(dir != 0.0) {
+		deg = fixDegrees(deg + dir);
+	}
+	if(zdir != 0.0) {
+		zdeg = fixDegrees(zdeg + zdir);
+	}
+	vector r;
+	r.x = x + sine(calculateTheta(deg));
+	r.y = y + cosine(calculateTheta(deg));
+	r.z = z + sine(calculateTheta(zdeg));
+	return r;
+}
+
+// Function to calculate theta to the rotation.
+double calculateTheta(double deg) {
+	return deg * PI / 180;
+}
+
+// Function to solve the closest direction at the player is facing.
+double getCloserDir(double facing) {
+	if(facing > (northwest + 23) and facing < (northeast - 23)) {
+		return NORTH;
+	} else if(facing > (north + 23) and facing < (east - 23)) {
+		return NORTHEAST;
+	} else if(facing > (northeast + 23) and facing < (southeast - 23)) {
+		return EAST;
+	} else if(facing > (east + 23) and facing < (south - 23)) {
+		return SOUTHEAST;
+	} else if(facing < (southwest - 23) and facing > (southeast + 23)) {
+		return SOUTH;
+	} else if(facing < (west - 23) and facing > (south + 23)) {
+		return SOUTHWEST;
+	} else if(facing < (northwest - 23) and facing > (southwest + 23)) {
+		return WEST;
+	} else if(facing < (north - 23) and facing > (west + 23)) {
+		return NORTHWEST;
+	} else {
+	return -1;
+	}
+}
+
+// Function to rotate to the left for 45 degrees by default, you can customize the rotation degrees with the second variable
+double snapLeft(double deg, double inc = 45) {
+	return fixDegrees(deg - inc);
+}
+
+// Function to rotate to the right at 45 degrees by default, you can customize the degrees with the second variable
+double snapRight(double deg, double inc = 45) {
+	return fixDegrees(deg + inc);
+}
+
+// Function to rotate to the left at 90 degrees
+double turnLeft(double deg) {
+	return fixDegrees(deg - 90);
+}
+
+// Function to rotate to the right at 90 degrees
+double turnRight(double deg) {
+	return fixDegrees(deg + 90);
+}
+
+// Function to return the orientation at the player is facing but in text format.
+string dirToString(int direction) {
+	string r = direction;
+	r = string_replace(r, NORTHWEST, "northwest", true);
+	r = string_replace(r, WEST, "west", true);
+	r = string_replace(r, SOUTHWEST, "southwest", true);
+	r = string_replace(r, SOUTH, "south", true);
+	r = string_replace(r, SOUTHEAST, "southeast", true);
+	r = string_replace(r, EAST, "east", true);
+	r = string_replace(r, NORTHEAST, "northeast", true);
+	r = string_replace(r, NORTH, "north", true);
+	return r;
+}
+
+// Function to calculate the 1D distance between two points.
+double get1dDistance(double x1, double x2) {
+	return absolute(x1 - x2);
+}
+
+// Function to calculate the 2D distance between two points.
+double get2dDistance(double x1, double y1, double x2, double y2) {
+	double x = get1dDistance(x1, x2);
+	double y = get1dDistance(y1, y2);
+	return x + y;
+}
+
+// Function to calculate the 3D distance between two points.
+double get3dDistance(double x1, double y1, double z1, double x2, double y2, double z2) {
+	double x = get1dDistance(x1, x2);
+	double y = get1dDistance(y1, y2);
+	double z = get1dDistance(z1, z2);
+	return x + y + z;
+}
+
+// Function to calculate the angle between two points in a 2D map.
+double calculate2dAngle(double x1, double y1, double x2, double y2, double deg) {
+	double x = x2 - x1;
+	double y = y2 - y1;
+	if(x == 0) {
+		x += 0.0000001;
+	}
+	if(y == 0) {
+		y += 0.0000001;
+	}
+	double rad = arc_tangent(y / x);
+	double arctan = rad / PI * 180;
+	double fdeg;
+	if(x > 0) {
+		fdeg = 90 - arctan;
+	} else if(x < 0) {
+		fdeg = 270 - arctan;
+	}
+	if(x == 0) {
+		if(y > 0) {
+			fdeg = 0;
+		} else if(y < 0) {
+			fdeg = 180;
+		}
+	}
+	fdeg -= deg;
+	if(fdeg < 0) {
+		fdeg += 360;
+	}
+	fdeg = round(fdeg, 0);
+	return fdeg;
+}
+
+// Function to solve the closeness between two points on the 2D map with the output in text format
+string calculate2dDistanceString(double deg) {
+	if(deg == 0) {
+		return "streight_in_front";
+	} else if(deg > 0 and deg < 10) {
+		return "very_slightly_to_the_right";
+	} else if(deg > 9 and deg < 20) {
+		return "slightly_off_to_the_right";
+	} else if(deg > 19 and deg < 40) {
+		return "a_little_ways_off_to_the_right";
+	} else if(deg > 39 and deg < 90) {
+		return "a_fair_distance_off_to_the_right";
+	} else if(deg == 90) {
+		return "streight_off_to_the_right";
+	} else if(deg > 90 and deg < 120) {
+		return "slightly_behind_and_far_off_to_the_right";
+	} else if(deg > 119 and deg < 150) {
+		return "behind_and_a_little_ways_off_to_the_right";
+	} else if(deg > 149 and deg < 170) {
+		return "behind_and_slightly_to_the_right";
+	} else if(deg > 169 and deg < 180) {
+		return "behind_and_very_slightly_to_the_right";
+	} else if(deg == 180) {
+		return "streight_behind";
+	} else if(deg > 180 and deg < 190) {
+		return "behind_and_very_slightly_to_the_left";
+	} else if(deg > 189 and deg < 200) {
+		return "behind_and_slightly_to_the_left";
+	} else if(deg > 199 and deg < 220) {
+		return "behind_and_a_little_ways_off_to_the_left";
+	} else if(deg > 219 and deg < 240) {
+		return "behind_and_a_fair_distance_off_to_the_left";
+	} else if(deg > 239 and deg < 270) {
+		return "slightly_behind_and_far_off_to_the_left";
+	} else if(deg == 270) {
+		return "streight_off_to_the_left";
+	} else if(deg>270 and deg<300) {
+		return "far_off_to_the_left";
+	} else if(deg > 299 and deg < 320) {
+		return "a_ways_off_to_the_left";
+	} else if(deg > 319 and deg < 340) {
+		return "A_little_ways_off_to_the_left";
+	} else if(deg > 339 and deg < 350) {
+		return "slightly_off_to_the_left";
+	} else if(deg > 349 and deg <= 360) {
+		return "very_slightly_off_to_the_left";
+	} else {
+		return "";
+	}
+}
+
+// Function to fix the degrees calculations when the variable is < 0 and > 360.
+double fixDegrees(double d) {
+	if(d < 0) {
+		d += 360;
+		return d;
+	} else if(d >= 360) {
+		d -= 360;
+		return d;
+	} else {
+		return d;
+	}
+}
